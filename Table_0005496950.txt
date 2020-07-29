@@ -1,0 +1,84 @@
+OBJECT Table 5496950 AGO DC Std.-App Setup
+{
+  OBJECT-PROPERTIES
+  {
+    Date=27.07.20;
+    Time=12:00:00;
+    Version List=DATACAPAPP1.0.0;
+  }
+  PROPERTIES
+  {
+    CaptionML=[DEU=DATACAP+ Standardanwendungseinrichtung;
+               ENU=DATACAP+ Standard Application Setup];
+  }
+  FIELDS
+  {
+    { 1   ;   ;Primary Key         ;Code10        ;DataClassification=ToBeClassified;
+                                                   CaptionML=[DEU=PrimÑrschlÅssel;
+                                                              ENU=Primary Key] }
+    { 10  ;   ;WR Document Update  ;Option        ;OnValidate=BEGIN
+                                                                IF "WR Document Update" = "WR Document Update"::"Per Document" THEN
+                                                                  "WR Document Posting" := "WR Document Posting"::"Per Document";
+                                                              END;
+
+                                                   DataClassification=ToBeClassified;
+                                                   CaptionML=[DEU=Wareneingang Belegaktualisierung;
+                                                              ENU=Warehouse Receipt Document Update];
+                                                   OptionCaptionML=[DEU=Je Beleg, Je Zeile;
+                                                                    ENU=Per Document,Per Line];
+                                                   OptionString=Per Document,Per Line }
+    { 15  ;   ;WR Document Posting ;Option        ;OnValidate=BEGIN
+                                                                IF "WR Document Posting" = "WR Document Posting"::"Per Line" THEN
+                                                                  "WR Document Update" := "WR Document Update"::"Per Line";
+                                                              END;
+
+                                                   DataClassification=ToBeClassified;
+                                                   CaptionML=[DEU=Wareneingang Belegbuchung;
+                                                              ENU=Warehouse Receipt Document Posting];
+                                                   OptionCaptionML=[DEU=Je Beleg, Je Zeile;
+                                                                    ENU=Per Document,Per Line];
+                                                   OptionString=Per Document,Per Line }
+    { 50  ;   ;Shortcut Back       ;Text5         ;InitValue=00;
+                                                   DataClassification=ToBeClassified;
+                                                   CaptionML=[DEU=TastenkÅrzel ZurÅck;
+                                                              ENU=Shortcut Back] }
+    { 51  ;   ;Shortcut Options    ;Text5         ;InitValue=0;
+                                                   DataClassification=ToBeClassified;
+                                                   CaptionML=[DEU=TastenkÅrzel Optionen;
+                                                              ENU=Shortcut Options] }
+    { 100 ;   ;WR Show Line Status ;Boolean       ;InitValue=Yes;
+                                                   CaptionML=[DEU=Wareneingang Zeilenstatus anzeigen;
+                                                              ENU=Warehouse Receipt Show Line Status] }
+    { 110 ;   ;WR Show Vendor Name ;Boolean       ;InitValue=Yes;
+                                                   CaptionML=[DEU=Wareneingang Kreditorenname anzeigen;
+                                                              ENU=Warehouse Receipt Show Vendor Name] }
+    { 111 ;   ;WR Show Vendor Shipment No.;Boolean;InitValue=Yes;
+                                                   CaptionML=[DEU=Wareneingang Kreditorenlieferungsnr. anzeigen;
+                                                              ENU=Warehouse Receipt Show Vendor Shipment No.] }
+    { 112 ;   ;WR Show Item Description;Boolean   ;InitValue=Yes;
+                                                   CaptionML=[DEU=Wareneingang Artikelbeschreibung anzeigen;
+                                                              ENU=Warehouse Receipt Show Item Description] }
+    { 113 ;   ;WR Show EAN         ;Boolean       ;InitValue=Yes;
+                                                   CaptionML=[DEU=Wareneingang EAN anzeigen;
+                                                              ENU=Warehouse Receipt Show EAN] }
+  }
+  KEYS
+  {
+    {    ;Primary Key                             ;Clustered=Yes }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    {
+      -------------------------------------------------------------------------------------------------
+       ∏ Copyright by ©AGOLUTION GmbH, Germany
+      -------------------------------------------------------------------------------------------------
+    }
+    END.
+  }
+}
+

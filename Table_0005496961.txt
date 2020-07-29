@@ -1,0 +1,166 @@
+OBJECT Table 5496961 AGO DC Std.-App WR Line Log E.
+{
+  OBJECT-PROPERTIES
+  {
+    Date=27.07.20;
+    Time=12:00:00;
+    Version List=DATACAPAPP1.0.0;
+  }
+  PROPERTIES
+  {
+    OnInsert=VAR
+               WRLineLogEntry@5496900 : Record 5496961;
+             BEGIN
+               "Entry No." := 1;
+               IF WRLineLogEntry.FINDLAST THEN
+                 "Entry No." += WRLineLogEntry."Entry No.";
+
+               "Creation Date-Time" := CURRENTDATETIME;
+             END;
+
+    CaptionML=[DEU=DATACAP+ Wareneingangszeilenprotokollposten;
+               ENU=AGO DC App Whse. Receipt Line Log Entry];
+  }
+  FIELDS
+  {
+    { 1   ;   ;Entry No.           ;Integer       ;DataClassification=ToBeClassified;
+                                                   CaptionML=DEU=Lfd. Nr. }
+    { 2   ;   ;Creation Date-Time  ;DateTime      ;DataClassification=ToBeClassified;
+                                                   CaptionML=[DEU=Datum/Uhrzeit der Erstellung;
+                                                              ENU=Creation Date-Time] }
+    { 10  ;   ;User ID             ;Code50        ;TableRelation=User."User Name";
+                                                   OnLookup=VAR
+                                                              UserMgt@1000 : Codeunit 418;
+                                                            BEGIN
+                                                              UserMgt.LookupUserID("User ID");
+                                                            END;
+
+                                                   TestTableRelation=No;
+                                                   DataClassification=ToBeClassified;
+                                                   CaptionML=[DEU=Benutzer-ID;
+                                                              ENU=User ID];
+                                                   NotBlank=Yes }
+    { 100 ;   ;Document Type       ;Option        ;DataClassification=ToBeClassified;
+                                                   CaptionML=[DEU=Belegart;
+                                                              ENU=Document Type];
+                                                   OptionCaptionML=[DEU=Bestellung,Lagereinlagerung,Wareneingang,Einlagerung;
+                                                                    ENU=Purch. Order,Invt. Put-away,Whse. Receipt,Put-Away];
+                                                   OptionString=Purch. Order,Invt. Put-away,Whse. Receipt,Put-Away }
+    { 110 ;   ;Document No.        ;Code20        ;TableRelation=IF (Document Type=CONST(Purch. Order)) "Purchase Header".No. WHERE (Document Type=CONST(Order),
+                                                                                                                                     No.=FIELD(Document No.))
+                                                                                                                                     ELSE IF (Document Type=CONST(Invt. Put-away)) "Warehouse Activity Header".No. WHERE (Type=CONST(Invt. Put-away),
+                                                                                                                                                                                                                          No.=FIELD(Document No.))
+                                                                                                                                                                                                                          ELSE IF (Document Type=CONST(Whse. Receipt)) "Warehouse Receipt Header".No. WHERE (No.=FIELD(Document No.))
+                                                                                                                                                                                                                          ELSE IF (Document Type=CONST(Put-Away)) "Warehouse Activity Header".No. WHERE (Type=CONST(Put-away),
+                                                                                                                                                                                                                                                                                                         No.=FIELD(Document No.));
+                                                   DataClassification=ToBeClassified;
+                                                   CaptionML=[DEU=Belegnr.;
+                                                              ENU=Document No.];
+                                                   NotBlank=Yes }
+    { 120 ;   ;Document Line No.   ;Integer       ;DataClassification=ToBeClassified;
+                                                   CaptionML=[DEU=Belegzeilennr.;
+                                                              ENU=Document Line No.] }
+    { 200 ;   ;Vendor Name         ;Text50        ;DataClassification=ToBeClassified;
+                                                   CaptionML=[DEU=Kreditorennname;
+                                                              ENU=Vendor Name] }
+    { 210 ;   ;Vendor Shipment No. ;Code35        ;DataClassification=ToBeClassified;
+                                                   CaptionML=[DEU=Kred.-Lieferungsnr.;
+                                                              ENU=Vendor Shipment No.] }
+    { 300 ;   ;No.                 ;Code20        ;TableRelation=Item.No.;
+                                                   DataClassification=ToBeClassified;
+                                                   CaptionML=[DEU=Nr.;
+                                                              ENU=No.] }
+    { 310 ;   ;Cross-Reference No. ;Code20        ;AccessByPermission=TableData 5717=R;
+                                                   DataClassification=ToBeClassified;
+                                                   CaptionML=[DEU=Referenznr.;
+                                                              ENU=Cross-Reference No.] }
+    { 400 ;   ;Description         ;Text50        ;DataClassification=ToBeClassified;
+                                                   CaptionML=[DEU=Beschreibung;
+                                                              ENU=Description] }
+    { 500 ;   ;Location Code       ;Code10        ;TableRelation=Location;
+                                                   DataClassification=ToBeClassified;
+                                                   CaptionML=[DEU=Lagerortcode;
+                                                              ENU=Location Code] }
+    { 510 ;   ;Bin Code            ;Code20        ;TableRelation=Bin.Code WHERE (Location Code=FIELD(Location Code));
+                                                   OnValidate=VAR
+                                                                WMSManagement@1000 : Codeunit 7302;
+                                                              BEGIN
+                                                              END;
+
+                                                   OnLookup=VAR
+                                                              WMSManagement@1000 : Codeunit 7302;
+                                                              BinCode@1001 : Code[20];
+                                                            BEGIN
+                                                            END;
+
+                                                   DataClassification=ToBeClassified;
+                                                   CaptionML=[DEU=Lagerplatzcode;
+                                                              ENU=Bin Code] }
+    { 600 ;   ;Base Unit of Measure Code;Code10   ;TableRelation="Unit of Measure";
+                                                   DataClassification=ToBeClassified;
+                                                   CaptionML=[DEU=Basiseinheitencode;
+                                                              ENU=Base Unit of Measure] }
+    { 610 ;   ;Unit of Measure Code;Code10        ;TableRelation="Item Unit of Measure".Code WHERE (Item No.=FIELD(No.));
+                                                   DataClassification=ToBeClassified;
+                                                   CaptionML=[DEU=Einheitencode;
+                                                              ENU=Unit of Measure Code] }
+    { 620 ;   ;Cross-R. Unit of Measure Code;Code10;
+                                                   TableRelation="Item Unit of Measure".Code WHERE (Item No.=FIELD(No.));
+                                                   DataClassification=ToBeClassified;
+                                                   CaptionML=[DEU=Einheitencode (Referenz);
+                                                              ENU=Unit of Measure Code (Cross Ref.)] }
+    { 700 ;   ;Quantity (Base)     ;Decimal       ;DataClassification=ToBeClassified;
+                                                   CaptionML=[DEU=Menge (Basis);
+                                                              ENU=Quantity (Base)];
+                                                   DecimalPlaces=0:5 }
+    { 710 ;   ;Outstanding Qty. (Base);Decimal    ;DataClassification=ToBeClassified;
+                                                   CaptionML=[DEU=Restmenge (Basis);
+                                                              ENU=Outstanding Qty. (Base)];
+                                                   DecimalPlaces=0:5;
+                                                   Editable=No }
+    { 720 ;   ;Outstanding Quantity;Decimal       ;DataClassification=ToBeClassified;
+                                                   CaptionML=[DEU=Restmenge;
+                                                              ENU=Outstanding Quantity];
+                                                   DecimalPlaces=0:5;
+                                                   Editable=No }
+    { 730 ;   ;Qty. to Handle      ;Decimal       ;DataClassification=ToBeClassified;
+                                                   CaptionML=[DEU=Bewegungsmenge;
+                                                              ENU=Qty. to Handle];
+                                                   DecimalPlaces=0:5;
+                                                   MinValue=0 }
+    { 740 ;   ;Qty. to Handle (Base);Decimal      ;DataClassification=ToBeClassified;
+                                                   CaptionML=[DEU=Bewegungsmenge (Basis);
+                                                              ENU=Qty. to Handle (Base)];
+                                                   DecimalPlaces=0:5 }
+    { 1000;   ;Processing Status   ;Option        ;CaptionML=[DEU=Bearbeitungsstatus;
+                                                              ENU=Processing Status];
+                                                   OptionCaptionML=[DEU=Offen,In Bearbeitung,Beendet;
+                                                                    ENU=Open,Processing,Finished];
+                                                   OptionString=Open,Processing,Finished }
+    { 1001;   ;Current Site        ;Integer       ;DataClassification=ToBeClassified;
+                                                   CaptionML=[DEU=Aktuelle Seite;
+                                                              ENU=Current Site] }
+  }
+  KEYS
+  {
+    {    ;Entry No.                                }
+    {    ;Document Type,Document No.,Document Line No.;
+                                                   Clustered=Yes }
+    {    ;User ID                                  }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+
+    BEGIN
+    {
+      -------------------------------------------------------------------------------------------------
+       ¸ Copyright by ©AGOLUTION GmbH, Germany
+      -------------------------------------------------------------------------------------------------
+    }
+    END.
+  }
+}
+

@@ -1,0 +1,137 @@
+OBJECT Page 5496950 AGO DC Std.-App Setup
+{
+  OBJECT-PROPERTIES
+  {
+    Date=27.07.20;
+    Time=12:00:00;
+    Version List=DATACAPAPP1.0.0;
+  }
+  PROPERTIES
+  {
+    CaptionML=[DEU=DATACAP+ Standardanwendungseinrichtung;
+               ENU=DATACAP+ Std.-App Setup];
+    SourceTable=Table5496950;
+    PageType=Card;
+    OnOpenPage=BEGIN
+                 RESET;
+                 IF NOT GET THEN BEGIN
+                   INIT;
+                   INSERT;
+                 END;
+               END;
+
+  }
+  CONTROLS
+  {
+    { 1000000000;0;Container;
+                ContainerType=ContentArea }
+
+    { 1000000001;1;Group  ;
+                CaptionML=[DEU=Allgemein;
+                           ENU=General];
+                GroupType=Group }
+
+    { 1000000002;1;Group  ;
+                CaptionML=[DEU=Wareneingang;
+                           ENU=Warehouse Receipt];
+                GroupType=Group }
+
+    { 5496900;2;Group     ;
+                CaptionML=[DEU=Anzeige;
+                           ENU=Display];
+                GroupType=Group }
+
+    { 5496902;3;Field     ;
+                CaptionML=[DEU=Kreditorenname;
+                           ENU=Vendor Name];
+                SourceExpr="WR Show Vendor Name" }
+
+    { 5496903;3;Field     ;
+                CaptionML=[DEU=Kreditorenlieferungsnr.;
+                           ENU=Vendor Shipment No.];
+                SourceExpr="WR Show Vendor Shipment No." }
+
+    { 5496905;3;Field     ;
+                CaptionML=[DEU=Zeilenstatus;
+                           ENU=Line Status];
+                SourceExpr="WR Show Line Status" }
+
+    { 5496904;3;Field     ;
+                CaptionML=[DEU=Artikelbeschreibung;
+                           ENU=Item Description];
+                SourceExpr="WR Show Item Description" }
+
+    { 5496901;3;Field     ;
+                CaptionML=[DEU=EAN;
+                           ENU=EAN];
+                SourceExpr="WR Show EAN" }
+
+    { 5496908;2;Group     ;
+                CaptionML=[DEU=Verarbeitung;
+                           ENU=Processing];
+                GroupType=Group }
+
+    { 5496906;3;Field     ;
+                CaptionML=[DEU=Belegaktualisierung;
+                           ENU=Document Update];
+                SourceExpr="WR Document Update" }
+
+    { 5496907;3;Field     ;
+                CaptionML=[DEU=Belegbuchung;
+                           ENU=Document Posting];
+                SourceExpr="WR Document Posting" }
+
+    { 5496909;2;Group     ;
+                CaptionML=[DEU=TastenkÅrzel;
+                           ENU=Shortcuts];
+                GroupType=Group }
+
+    { 5496910;3;Field     ;
+                CaptionML=[DEU=ZurÅck;
+                           ENU=Back];
+                SourceExpr="Shortcut Back" }
+
+    { 5496911;3;Field     ;
+                CaptionML=[DEU=Optionen;
+                           ENU=Options];
+                SourceExpr="Shortcut Options" }
+
+    { 1000000003;1;Group  ;
+                CaptionML=[DEU=Einlagerung;
+                           ENU=Put-away];
+                GroupType=Group }
+
+    { 1000000004;1;Group  ;
+                CaptionML=[DEU=Umlagerung;
+                           ENU=Transfer];
+                GroupType=Group }
+
+    { 1000000005;1;Group  ;
+                CaptionML=[DEU=Kommissionierung;
+                           ENU=Picking];
+                GroupType=Group }
+
+    { 1000000006;1;Group  ;
+                CaptionML=[DEU=Warenausgang;
+                           ENU=Warehouse Shipment];
+                GroupType=Group }
+
+    { 1000000007;1;Group  ;
+                CaptionML=[DEU=Inventur;
+                           ENU=Inventory];
+                GroupType=Group }
+
+  }
+  CODE
+  {
+
+    BEGIN
+    {
+      -------------------------------------------------------------------------------------------------
+       ∏ Copyright by ©AGOLUTION GmbH, Germany
+      -------------------------------------------------------------------------------------------------
+    }
+    END.
+  }
+}
+

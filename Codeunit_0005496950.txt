@@ -1,0 +1,66 @@
+OBJECT Codeunit 5496950 AGO DC App Management
+{
+  OBJECT-PROPERTIES
+  {
+    Date=27.07.20;
+    Time=12:00:00;
+    Version List=DATACAPAPP1.0.0;
+  }
+  PROPERTIES
+  {
+    OnRun=BEGIN
+          END;
+
+  }
+  CODE
+  {
+
+    PROCEDURE IsBackTerm@5496900(Term@5496900 : Text) : Boolean;
+    VAR
+      AGODCStdAppSetup@5496901 : Record 5496950;
+    BEGIN
+      IF AGODCStdAppSetup.GET THEN
+        EXIT(Term = AGODCStdAppSetup."Shortcut Back");
+    END;
+
+    PROCEDURE IsOptionTerm@5496904(Term@5496900 : Text) : Boolean;
+    VAR
+      AGODCStdAppSetup@5496901 : Record 5496950;
+    BEGIN
+      IF AGODCStdAppSetup.GET THEN
+        EXIT(Term = AGODCStdAppSetup."Shortcut Options");
+    END;
+
+    PROCEDURE FindItem@5496907(InputEANorItemNo@5496900 : Text;VAR ItemNo@5496903 : Code[20];VAR ItemDescription@5496905 : Text[50];VAR ItemBaseUoMCode@5496907 : Code[10];VAR EAN@5496904 : Code[20];VAR EANUoMCode@5496906 : Code[10]) : Boolean;
+    VAR
+      ItemCrossRef@5496902 : Record 5717;
+      Item@5496901 : Record 27;
+    BEGIN
+      ItemCrossRef.SETRANGE("Cross-Reference Type",ItemCrossRef."Cross-Reference Type"::"Bar Code");
+      ItemCrossRef.SETRANGE("Cross-Reference No.",COPYSTR(InputEANorItemNo,1,MAXSTRLEN(ItemCrossRef."Cross-Reference No.")));
+      IF ItemCrossRef.FINDFIRST THEN BEGIN
+        EAN := ItemCrossRef."Cross-Reference No.";
+        EANUoMCode := ItemCrossRef."Unit of Measure";
+
+        InputEANorItemNo := ItemCrossRef."Item No.";
+      END;
+
+      IF Item.GET(COPYSTR(InputEANorItemNo,1,MAXSTRLEN(Item."No."))) THEN BEGIN
+        ItemNo := Item."No.";
+        ItemDescription := Item.Description;
+        ItemBaseUoMCode := Item."Base Unit of Measure";
+
+        EXIT(TRUE);
+      END;
+    END;
+
+    BEGIN
+    {
+      -------------------------------------------------------------------------------------------------
+       ¸ Copyright by ©AGOLUTION GmbH, Germany
+      -------------------------------------------------------------------------------------------------
+    }
+    END.
+  }
+}
+
