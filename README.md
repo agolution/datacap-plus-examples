@@ -1,4 +1,4 @@
-<img src="assets/logo.png" align="right" />
+<img src="https://raw.githubusercontent.com/agolution/agolution-brands/main/datacap-plus/datacap-plus-icon-original-216x216px.png" align="right" />
 
 # DATACAP+ Standard MDE-Anwendungen
 
