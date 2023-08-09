@@ -19,7 +19,7 @@ Dive into the world of customizing **DATACAP+** user interfaces using CSS. This 
 
 DATACAP+ C/AL Example for posting Warehouse Receipts in Dynamics NAV.
 
-![Warehouse Receipt Screenshot](/warehouse-receipt-in-cal/assets/Screenshot.png)
+![Warehouse Receipt Screenshot](warehouse-receipt-in-cal/Assets/Screenshot.png)
 
 [Explore the Example](/warehouse-receipt-in-cal/)
 

@@ -6,4 +6,4 @@ Welcome to the DATACAP+ C/AL Example for posting Warehouse Receipts in Dynamics 
 - Inventory Put-aways
 - Warehouse Receipts
 
-![Warehouse Receipts](assets/Screenshot.png)
+![Warehouse Receipts](Assets/Screenshot.png)
