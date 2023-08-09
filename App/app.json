@@ -1,0 +1,31 @@
+{
+  "id": "28f5a43f-34b0-4015-89a9-c498eeb11601",
+  "name": "DATACAP+ CSS Example",
+  "publisher": "AGOLUTION GmbH",
+  "version": "1.0.0.0",
+  "dependencies": [
+	{
+		"id": "a0fa4bf8-bf6e-40cd-ba6d-d3e5910c730b",
+		"name": "DATACAP+ Base",
+		"publisher": "AGOLUTION GmbH",
+		"version": "1.21.0.0"
+	}
+  ],
+  "platform": "1.0.0.0",
+  "application": "21.0.0.0",
+  "idRanges": [
+    {
+      "from": 50100,
+      "to": 50149
+    }
+  ],
+  "resourceExposurePolicy": {
+    "allowDebugging": true,
+    "allowDownloadingSource": true,
+    "includeSourceInSymbolFile": true
+  },
+  "runtime": "10.0",
+  "features": [
+    "NoImplicitWith"
+  ]
+}

@@ -1,0 +1,81 @@
+p,
+td,
+input,
+button {
+	font-size: larger;
+	font-family: Calibri;
+	vertical-align: middle;
+}
+
+button {
+	background-color: inherit;
+}
+
+.submit {
+	background-color: unset;
+}
+
+.section {
+	text-align: center;
+	font-size: x-large;
+}
+
+.name {
+	text-align: right;
+}
+
+.Red {
+	background-color: red;
+}
+
+.IndianRed {
+	background-color: indianred;
+}
+
+.PaleVioletRed {
+	background-color: palevioletred;
+}
+
+.OrangeRed {
+	background-color: orangered;
+}
+
+.Green {
+	background-color: green;
+}
+
+.LimeGreen {
+	background-color: limegreen;
+}
+
+.GreenYellow {
+	background-color: greenyellow;
+}
+
+.DarkSeaGreen {
+	background-color: darkseagreen;
+}
+
+.LightGreen {
+	background-color: lightgreen;
+}
+
+.CornFlowerBlue {
+	background-color: cornflowerblue;
+}
+
+.DeepSkyBlue {
+	background-color: deepskyblue;
+}
+
+.SkyBlue {
+	background-color: skyblue;
+}
+
+.Yellow {
+	background-color: yellow;
+}
+
+.LightGoldenRodYellow {
+	background-color: lightgoldenrodyellow;
+}
