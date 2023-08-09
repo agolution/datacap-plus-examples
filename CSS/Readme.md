@@ -14,8 +14,8 @@ In this package, you'll find the following key components:
 
 Behold the allure of your customized interface! Feast your eyes on the screenshot below:
 
-![Example Screenshot MDE](ScreenshotMDE.png)
-![Example Screenshot Business Central](ScreenshotBC.png)
+![Example Screenshot MDE](assets/ScreenshotMDE.png)
+![Example Screenshot Business Central](assets/ScreenshotBC.png)
 
 Get ready to dive into a realm where your DATACAP+ interface becomes an expression of your unique style and needs. Let's unleash the artistry of CSS upon your data capture journey!
 
