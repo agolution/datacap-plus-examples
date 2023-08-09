@@ -1,0 +1,548 @@
+OBJECT Table 5496960 AGO DC Std.-App WR Line
+{
+  OBJECT-PROPERTIES
+  {
+    Date=27.07.20;
+    Time=12:00:00;
+    Version List=DATACAPAPP1.0.0;
+  }
+  PROPERTIES
+  {
+    CaptionML=[DEU=DATACAP+ Wareneingangszeile;
+               ENU=AGO DC App Whse. Receipt Line];
+  }
+  FIELDS
+  {
+    { 10  ;   ;User ID             ;Code50        ;TableRelation=User."User Name";
+                                                   OnLookup=VAR
+                                                              UserMgt@1000 : Codeunit 418;
+                                                            BEGIN
+                                                              UserMgt.LookupUserID("User ID");
+                                                            END;
+
+                                                   TestTableRelation=No;
+                                                   DataClassification=EndUserIdentifiableInformation;
+                                                   CaptionML=[DEU=Benutzer-ID;
+                                                              ENU=User ID];
+                                                   NotBlank=Yes }
+    { 100 ;   ;Document Type       ;Option        ;CaptionML=[DEU=Belegart;
+                                                              ENU=Document Type];
+                                                   OptionCaptionML=[DEU=Bestellung,Lagereinlagerung,Wareneingang,Einlagerung;
+                                                                    ENU=Purch. Order,Invt. Put-away,Whse. Receipt,Put-Away];
+                                                   OptionString=Purch. Order,Invt. Put-away,Whse. Receipt,Put-Away }
+    { 110 ;   ;Document No.        ;Code20        ;TableRelation=IF (Document Type=CONST(Purch. Order)) "Purchase Header".No. WHERE (Document Type=CONST(Order),
+                                                                                                                                     No.=FIELD(Document No.))
+                                                                                                                                     ELSE IF (Document Type=CONST(Invt. Put-away)) "Warehouse Activity Header".No. WHERE (Type=CONST(Invt. Put-away),
+                                                                                                                                                                                                                          No.=FIELD(Document No.))
+                                                                                                                                                                                                                          ELSE IF (Document Type=CONST(Whse. Receipt)) "Warehouse Receipt Header".No. WHERE (No.=FIELD(Document No.))
+                                                                                                                                                                                                                          ELSE IF (Document Type=CONST(Put-Away)) "Warehouse Activity Header".No. WHERE (Type=CONST(Put-away),
+                                                                                                                                                                                                                                                                                                         No.=FIELD(Document No.));
+                                                   CaptionML=[DEU=Belegnr.;
+                                                              ENU=Document No.];
+                                                   NotBlank=Yes }
+    { 120 ;   ;Document Line No.   ;Integer       ;CaptionML=[DEU=Belegzeilennr.;
+                                                              ENU=Document Line No.] }
+    { 200 ;   ;Vendor Name         ;Text50        ;CaptionML=[DEU=Kreditorennname;
+                                                              ENU=Vendor Name] }
+    { 210 ;   ;Vendor Shipment No. ;Code35        ;CaptionML=[DEU=Kred.-Lieferungsnr.;
+                                                              ENU=Vendor Shipment No.] }
+    { 300 ;   ;No.                 ;Code20        ;TableRelation=Item.No.;
+                                                   CaptionML=[DEU=Nr.;
+                                                              ENU=No.] }
+    { 310 ;   ;Cross-Reference No. ;Code20        ;AccessByPermission=TableData 5717=R;
+                                                   CaptionML=[DEU=Referenznr.;
+                                                              ENU=Cross-Reference No.] }
+    { 400 ;   ;Description         ;Text50        ;CaptionML=[DEU=Beschreibung;
+                                                              ENU=Description] }
+    { 500 ;   ;Location Code       ;Code10        ;TableRelation=Location;
+                                                   CaptionML=[DEU=Lagerortcode;
+                                                              ENU=Location Code] }
+    { 510 ;   ;Bin Code            ;Code20        ;TableRelation=Bin.Code WHERE (Location Code=FIELD(Location Code));
+                                                   OnValidate=VAR
+                                                                WMSManagement@1000 : Codeunit 7302;
+                                                              BEGIN
+                                                              END;
+
+                                                   OnLookup=VAR
+                                                              WMSManagement@1000 : Codeunit 7302;
+                                                              BinCode@1001 : Code[20];
+                                                            BEGIN
+                                                            END;
+
+                                                   CaptionML=[DEU=Lagerplatzcode;
+                                                              ENU=Bin Code] }
+    { 600 ;   ;Base Unit of Measure Code;Code10   ;TableRelation="Unit of Measure";
+                                                   CaptionML=[DEU=Basiseinheitencode;
+                                                              ENU=Base Unit of Measure] }
+    { 610 ;   ;Unit of Measure Code;Code10        ;TableRelation="Item Unit of Measure".Code WHERE (Item No.=FIELD(No.));
+                                                   CaptionML=[DEU=Einheitencode;
+                                                              ENU=Unit of Measure Code] }
+    { 620 ;   ;Cross-R. Unit of Measure Code;Code10;
+                                                   TableRelation="Item Unit of Measure".Code WHERE (Item No.=FIELD(No.));
+                                                   DataClassification=ToBeClassified;
+                                                   CaptionML=[DEU=Einheitencode (Referenz);
+                                                              ENU=Unit of Measure Code (Cross Ref.)] }
+    { 700 ;   ;Quantity (Base)     ;Decimal       ;DataClassification=ToBeClassified;
+                                                   CaptionML=[DEU=Menge (Basis);
+                                                              ENU=Quantity (Base)];
+                                                   DecimalPlaces=0:5 }
+    { 710 ;   ;Outstanding Qty. (Base);Decimal    ;DataClassification=ToBeClassified;
+                                                   CaptionML=[DEU=Restmenge (Basis);
+                                                              ENU=Outstanding Qty. (Base)];
+                                                   DecimalPlaces=0:5;
+                                                   Editable=No }
+    { 720 ;   ;Outstanding Quantity;Decimal       ;DataClassification=ToBeClassified;
+                                                   CaptionML=[DEU=Restmenge;
+                                                              ENU=Outstanding Quantity];
+                                                   DecimalPlaces=0:5;
+                                                   Editable=No }
+    { 730 ;   ;Qty. to Handle      ;Decimal       ;DataClassification=ToBeClassified;
+                                                   CaptionML=[DEU=Bewegungsmenge;
+                                                              ENU=Qty. to Handle];
+                                                   DecimalPlaces=0:5;
+                                                   MinValue=0 }
+    { 740 ;   ;Qty. to Handle (Base);Decimal      ;DataClassification=ToBeClassified;
+                                                   CaptionML=[DEU=Bewegungsmenge (Basis);
+                                                              ENU=Qty. to Handle (Base)];
+                                                   DecimalPlaces=0:5 }
+    { 1000;   ;Processing Status   ;Option        ;CaptionML=[DEU=Bearbeitungsstatus;
+                                                              ENU=Processing Status];
+                                                   OptionCaptionML=[DEU=Offen,In Bearbeitung,Beendet;
+                                                                    ENU=Open,Processing,Finished];
+                                                   OptionString=Open,Processing,Finished }
+    { 1001;   ;Current Site        ;Integer       ;DataClassification=ToBeClassified;
+                                                   CaptionML=[DEU=Aktuelle Seite;
+                                                              ENU=Current Site] }
+    { 1002;   ;Show Options        ;Boolean       ;DataClassification=ToBeClassified;
+                                                   CaptionML=[DEU=Optionen anzeigen;
+                                                              ENU=Show Options] }
+  }
+  KEYS
+  {
+    {    ;Document Type,Document No.,Document Line No.;
+                                                   Clustered=Yes }
+    {    ;User ID                                  }
+  }
+  FIELDGROUPS
+  {
+  }
+  CODE
+  {
+    VAR
+      StdAppSetup@5496900 : Record 5496950;
+      StdAppSetupFetched@5496901 : Boolean;
+
+    PROCEDURE SetProcessingStatus@5496906(NewProcessingStatus@5496900 : 'Open,Processing,Finished') LinesDeleted : Boolean;
+    BEGIN
+      IF NewProcessingStatus < "Processing Status" THEN
+        ERROR('');
+
+      "Processing Status" := NewProcessingStatus;
+
+      IF "Processing Status" = "Processing Status"::Finished THEN BEGIN
+        UpdateDocument;
+        PostDocument;
+
+        MODIFY;
+
+        IF AllLinesProcessed THEN BEGIN
+          CopyProcessedWRLinesToLog;
+          LinesDeleted := TRUE;
+        END;
+      END;
+    END;
+
+    PROCEDURE SetCurrentSite@5496908(NewCurrentSite@5496900 : Integer);
+    BEGIN
+      "Current Site" := NewCurrentSite;
+    END;
+
+    PROCEDURE SetShowOptions@5496907(NewShowOptions@5496900 : Boolean);
+    BEGIN
+      "Show Options" := NewShowOptions;
+    END;
+
+    LOCAL PROCEDURE AllLinesProcessed@5496900() : Boolean;
+    VAR
+      WRLine@5496900 : Record 5496960;
+    BEGIN
+      IF "Processing Status" <> "Processing Status"::Finished THEN
+        EXIT(FALSE);
+
+      WRLine.SETRANGE("Document Type","Document Type");
+      WRLine.SETRANGE("Document No.","Document No.");
+      WRLine.SETFILTER("Document Line No.",'<>%1',"Document Line No.");
+      WRLine.SETFILTER("Processing Status",'<>%1',"Processing Status");
+      IF WRLine.ISEMPTY THEN
+        EXIT(TRUE)
+    END;
+
+    LOCAL PROCEDURE UpdateDocument@5496901();
+    BEGIN
+      UpdateDocumentHeader;
+      UpdateDocumentLines;
+    END;
+
+    LOCAL PROCEDURE UpdateDocumentHeader@5496911();
+    BEGIN
+      IF "Document Line No." > 0 THEN
+        EXIT;
+
+      GetStdAppSetup;
+      IF StdAppSetup."WR Document Update" = StdAppSetup."WR Document Update"::"Per Document" THEN
+        IF NOT AllLinesProcessed THEN
+          EXIT;
+
+      CASE "Document Type" OF
+        "Document Type"::"Purch. Order":
+          UpdatePurchHeader;
+        "Document Type"::"Invt. Put-away":
+          UpdateInvtPutAwayHeader;
+        "Document Type"::"Whse. Receipt":
+          UpdateWhseRcptHeader;
+      END;
+    END;
+
+    LOCAL PROCEDURE UpdatePurchHeader@5496925();
+    VAR
+      WRLine@5496903 : Record 5496960;
+      PurchHeader@5496900 : Record 38;
+    BEGIN
+      WRLine.GET("Document Type","Document No.",0);
+
+      WITH PurchHeader DO BEGIN
+        GET("Document Type"::Order,WRLine."Document No.");
+
+        Receive := TRUE;
+        IF WRLine."Vendor Shipment No." <> '' THEN
+          "Vendor Shipment No." := WRLine."Vendor Shipment No.";
+
+        MODIFY;
+      END;
+    END;
+
+    LOCAL PROCEDURE UpdateInvtPutAwayHeader@5496928();
+    VAR
+      WRLine@5496903 : Record 5496960;
+      WhseActHeader@5496900 : Record 5766;
+    BEGIN
+      WRLine.GET("Document Type","Document No.",0);
+
+      WITH WhseActHeader DO BEGIN
+        GET(Type::"Invt. Put-away",WRLine."Document No.");
+
+        IF WRLine."Vendor Shipment No." <> '' THEN
+          "External Document No." := WRLine."Vendor Shipment No.";
+
+        MODIFY;
+      END;
+    END;
+
+    LOCAL PROCEDURE UpdateWhseRcptHeader@5496929();
+    VAR
+      WRLine@5496903 : Record 5496960;
+      WhseRcptHeader@5496900 : Record 7316;
+    BEGIN
+      WRLine.GET("Document Type","Document No.",0);
+
+      WITH WhseRcptHeader DO BEGIN
+        GET(WRLine."Document No.");
+
+        IF WRLine."Vendor Shipment No." <> '' THEN
+          "Vendor Shipment No." := WRLine."Vendor Shipment No.";
+
+        MODIFY;
+      END;
+    END;
+
+    LOCAL PROCEDURE UpdateDocumentLines@5496912();
+    BEGIN
+      IF "Document Line No." = 0 THEN
+        EXIT;
+
+      GetStdAppSetup;
+      IF StdAppSetup."WR Document Update" = StdAppSetup."WR Document Update"::"Per Document" THEN
+        IF NOT AllLinesProcessed THEN
+          EXIT;
+
+      CASE "Document Type" OF
+        "Document Type"::"Purch. Order":
+          UpdatePurchLines;
+        "Document Type"::"Invt. Put-away":
+          UpdateInvtPutAwayLines;
+        "Document Type"::"Whse. Receipt":
+          UpdateWhseRcptLines;
+      END;
+    END;
+
+    LOCAL PROCEDURE UpdatePurchLines@5496926();
+    VAR
+      WRLine@5496903 : Record 5496960;
+      PurchLine@5496902 : Record 39;
+    BEGIN
+      WITH PurchLine DO BEGIN
+        // Menge akt. Lieferung nullen fÅr alle Zeilen
+        // wirklich hier durchfÅhren oder besser beim Åbertragen in WR-Zeile?
+        // manuelle Bearbeitung sperren wenn in WR-Zeile vorhanden?
+        SETRANGE("Document Type","Document Type"::Order);
+        SETRANGE("Document No.",Rec."Document No.");
+        SETFILTER(Type,'<>%1',Type::" ");
+        SETFILTER("Outstanding Qty. (Base)",'<>0');
+        IF FINDSET THEN
+          REPEAT
+          // Nullen wenn
+            // Zeile nicht in WRLine gefunden werden kann
+            // und wenn in WRLine gefunden aber Bearbeitungsstatus <> Beendet
+            IF NOT WRLine.GET(WRLine."Document Type"::"Purch. Order","Document No.","Line No.") OR
+              (WRLine."Processing Status" <> WRLine."Processing Status"::Finished)
+            THEN
+              IF "Qty. to Receive" <> 0 THEN BEGIN
+                VALIDATE("Qty. to Receive",0);
+
+                MODIFY;
+              END;
+          UNTIL NEXT = 0;
+
+        GetStdAppSetup;
+
+        WRLine.RESET;
+        WRLine.SETRANGE("Document Type",Rec."Document Type");
+        WRLine.SETRANGE("Document No.",Rec."Document No.");
+        IF StdAppSetup."WR Document Update" = StdAppSetup."WR Document Update"::"Per Line" THEN
+          WRLine.SETRANGE("Document Line No.",Rec."Document Line No.")
+        ELSE
+          WRLine.SETFILTER("Document Line No.",'<>%1',0);
+        WRLine.SETRANGE("Processing Status",WRLine."Processing Status"::Processing,WRLine."Processing Status"::Finished);
+        IF WRLine.FINDSET THEN
+          REPEAT
+            IF (WRLine."Processing Status" <> WRLine."Processing Status"::Processing) OR (WRLine."Document Line No." = "Document Line No.") THEN BEGIN
+              GET("Document Type"::Order,WRLine."Document No.",WRLine."Document Line No.");
+
+              VALIDATE("Bin Code",WRLine."Bin Code");
+              VALIDATE("Qty. to Receive",WRLine."Qty. to Handle");
+
+              MODIFY;
+            END;
+          UNTIL WRLine.NEXT = 0;
+      END;
+    END;
+
+    LOCAL PROCEDURE UpdateInvtPutAwayLines@5496932();
+    VAR
+      WRLine@5496903 : Record 5496960;
+      WhseActLine@5496902 : Record 5767;
+    BEGIN
+      WITH WhseActLine DO BEGIN
+        // Menge akt. Lieferung nullen fÅr alle Zeilen
+        // wirklich hier durchfÅhren oder besser beim Åbertragen in WR-Zeile?
+        // manuelle Bearbeitung sperren wenn in WR-Zeile vorhanden?
+        SETRANGE("Activity Type","Activity Type"::"Invt. Put-away");
+        SETRANGE("No.",Rec."Document No.");
+        SETFILTER("Item No.",'<>%1','');
+        SETFILTER("Qty. Outstanding (Base)",'<>0');
+        IF FINDSET THEN
+          REPEAT
+          // Nullen wenn
+            // Zeile nicht in WRLine gefunden werden kann
+            // und wenn in WRLine gefunden aber Bearbeitungsstatus <> Beendet
+            IF NOT WRLine.GET(WRLine."Document Type"::"Invt. Put-away","No.","Line No.") OR
+              (WRLine."Processing Status" <> WRLine."Processing Status"::Finished)
+            THEN
+              IF "Qty. to Handle" <> 0 THEN BEGIN
+                VALIDATE("Qty. to Handle",0);
+
+                MODIFY;
+              END;
+          UNTIL NEXT = 0;
+
+        GetStdAppSetup;
+
+        WRLine.RESET;
+        WRLine.SETRANGE("Document Type",Rec."Document Type");
+        WRLine.SETRANGE("Document No.",Rec."Document No.");
+        IF StdAppSetup."WR Document Update" = StdAppSetup."WR Document Update"::"Per Line" THEN
+          WRLine.SETRANGE("Document Line No.",Rec."Document Line No.")
+        ELSE
+          WRLine.SETFILTER("Document Line No.",'<>%1',0);
+        WRLine.SETRANGE("Processing Status",WRLine."Processing Status"::Processing,WRLine."Processing Status"::Finished);
+        IF WRLine.FINDSET THEN
+          REPEAT
+            IF (WRLine."Processing Status" <> WRLine."Processing Status"::Processing) OR (WRLine."Document Line No." = "Document Line No.") THEN BEGIN
+              GET("Activity Type"::"Invt. Put-away",WRLine."Document No.",WRLine."Document Line No.");
+
+              VALIDATE("Bin Code",WRLine."Bin Code");
+              VALIDATE("Qty. to Handle",WRLine."Qty. to Handle");
+
+              MODIFY;
+            END;
+          UNTIL WRLine.NEXT = 0;
+      END;
+    END;
+
+    LOCAL PROCEDURE UpdateWhseRcptLines@5496933();
+    VAR
+      WRLine@5496903 : Record 5496960;
+      WhseRcptLine@5496902 : Record 7317;
+    BEGIN
+      WITH WhseRcptLine DO BEGIN
+        // Menge akt. Lieferung nullen fÅr alle Zeilen
+        // wirklich hier durchfÅhren oder besser beim Åbertragen in WR-Zeile?
+        // manuelle Bearbeitung sperren wenn in WR-Zeile vorhanden?
+        SETRANGE("No.",Rec."Document No.");
+        SETFILTER("Item No.",'<>%1','');
+        SETFILTER("Qty. Outstanding (Base)",'<>0');
+        IF FINDSET THEN
+          REPEAT
+          // Nullen wenn
+            // Zeile nicht in WRLine gefunden werden kann
+            // und wenn in WRLine gefunden aber Bearbeitungsstatus <> Beendet
+            IF NOT WRLine.GET(WRLine."Document Type"::"Whse. Receipt","No.","Line No.") OR
+              (WRLine."Processing Status" <> WRLine."Processing Status"::Finished)
+            THEN
+              IF "Qty. to Receive" <> 0 THEN BEGIN
+                VALIDATE("Qty. to Receive",0);
+
+                MODIFY;
+              END;
+          UNTIL NEXT = 0;
+
+        GetStdAppSetup;
+
+        WRLine.RESET;
+        WRLine.SETRANGE("Document Type",Rec."Document Type");
+        WRLine.SETRANGE("Document No.",Rec."Document No.");
+        IF StdAppSetup."WR Document Update" = StdAppSetup."WR Document Update"::"Per Line" THEN
+          WRLine.SETRANGE("Document Line No.",Rec."Document Line No.")
+        ELSE
+          WRLine.SETFILTER("Document Line No.",'<>%1',0);
+        WRLine.SETRANGE("Processing Status",WRLine."Processing Status"::Processing,WRLine."Processing Status"::Finished);
+        IF WRLine.FINDSET THEN
+          REPEAT
+            IF (WRLine."Processing Status" <> WRLine."Processing Status"::Processing) OR (WRLine."Document Line No." = "Document Line No.") THEN BEGIN
+              GET(WRLine."Document No.",WRLine."Document Line No.");
+
+              VALIDATE("Bin Code",WRLine."Bin Code");
+              VALIDATE("Qty. to Receive",WRLine."Qty. to Handle");
+
+              MODIFY;
+            END;
+          UNTIL WRLine.NEXT = 0;
+      END;
+    END;
+
+    LOCAL PROCEDURE PostDocument@5496902();
+    BEGIN
+      IF "Document Line No." = 0 THEN
+        EXIT;
+
+      GetStdAppSetup;
+      IF (StdAppSetup."WR Document Posting" = StdAppSetup."WR Document Posting"::"Per Document") THEN
+        IF NOT AllLinesProcessed THEN
+          EXIT;
+
+      CASE "Document Type" OF
+        "Document Type"::"Purch. Order":
+          PostPurchOrder;
+        "Document Type"::"Invt. Put-away":
+          PostInvtPutAway;
+        "Document Type"::"Whse. Receipt":
+          PostWhseRcpt;
+      END;
+    END;
+
+    LOCAL PROCEDURE PostPurchOrder@5496903();
+    VAR
+      PurchHeader@5496901 : Record 38;
+      PurchPost@5496900 : Codeunit 90;
+    BEGIN
+      COMMIT;
+      PurchHeader.GET(PurchHeader."Document Type"::Order,"Document No.");
+      PurchPost.RUN(PurchHeader);
+    END;
+
+    LOCAL PROCEDURE PostInvtPutAway@5496904();
+    VAR
+      WhseActLine@5496900 : Record 5767;
+      WhseActivityPost@5496901 : Codeunit 7324;
+    BEGIN
+      COMMIT;
+      WhseActLine.GET(WhseActLine."Activity Type"::"Invt. Put-away","Document No.","Document Line No.");
+      WhseActivityPost.RUN(WhseActLine);
+
+      GetStdAppSetup;
+      IF (StdAppSetup."WR Document Posting" = StdAppSetup."WR Document Posting"::"Per Line") THEN BEGIN
+        WhseActLine.RESET;
+        WhseActLine.SETRANGE("Activity Type",WhseActLine."Activity Type"::"Invt. Put-away");
+        WhseActLine.SETRANGE("No.","Document No.");
+        WhseActLine.SETRANGE("Line No.","Document Line No.");
+        WhseActLine.SETFILTER("Qty. to Handle",'<>0');
+        IF NOT WhseActLine.ISEMPTY THEN
+          WhseActLine.DeleteQtyToHandle(WhseActLine);
+      END;
+    END;
+
+    LOCAL PROCEDURE PostWhseRcpt@5496905();
+    VAR
+      WhseRcptLine@5496900 : Record 7317;
+      WhsePostReceipt@5496901 : Codeunit 5760;
+    BEGIN
+      COMMIT;
+      WhseRcptLine.GET("Document No.","Document Line No.");
+      WhsePostReceipt.RUN(WhseRcptLine);
+
+      GetStdAppSetup;
+      IF (StdAppSetup."WR Document Posting" = StdAppSetup."WR Document Posting"::"Per Line") THEN BEGIN
+        WhseRcptLine.RESET;
+        WhseRcptLine.SETRANGE("No.","Document No.");
+        WhseRcptLine.SETRANGE("Line No.","Document Line No.");
+        WhseRcptLine.SETFILTER("Qty. to Receive",'<>0');
+        IF NOT WhseRcptLine.ISEMPTY THEN
+          WhseRcptLine.DeleteQtyToReceive(WhseRcptLine);
+      END;
+
+    END;
+
+    PROCEDURE DeleteDocumentWRLines@5496909(OnlyProcessedLines@5496901 : Boolean);
+    VAR
+      WRLine@5496900 : Record 5496960;
+    BEGIN
+      WRLine.SETRANGE("Document Type","Document Type");
+      WRLine.SETRANGE("Document No.","Document No.");
+      IF OnlyProcessedLines THEN
+        WRLine.SETRANGE("Processing Status",WRLine."Processing Status"::Finished);
+      WRLine.DELETEALL;
+    END;
+
+    LOCAL PROCEDURE CopyProcessedWRLinesToLog@5496920();
+    VAR
+      WRLine@5496900 : Record 5496960;
+      WRLineLogEntry@5496901 : Record 5496961;
+    BEGIN
+      WRLine.SETRANGE("Document Type","Document Type");
+      WRLine.SETRANGE("Document No.","Document No.");
+      WRLine.SETRANGE("Processing Status",WRLine."Processing Status"::Finished);
+      IF WRLine.FINDSET THEN
+        REPEAT
+          WRLineLogEntry.TRANSFERFIELDS(WRLine);
+          WRLineLogEntry.INSERT(TRUE);
+        UNTIL WRLine.NEXT = 0;
+
+      WRLine.DELETEALL;
+    END;
+
+    LOCAL PROCEDURE GetStdAppSetup@5496914();
+    BEGIN
+      IF NOT StdAppSetupFetched THEN
+        StdAppSetupFetched := StdAppSetup.GET;
+    END;
+
+    BEGIN
+    {
+      -------------------------------------------------------------------------------------------------
+       ∏ Copyright by ©AGOLUTION GmbH, Germany
+      -------------------------------------------------------------------------------------------------
+    }
+    END.
+  }
+}
+

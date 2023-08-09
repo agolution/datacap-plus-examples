@@ -1,0 +1,550 @@
+OBJECT Codeunit 5496960 AGO DC App Whse. Receipt
+{
+  OBJECT-PROPERTIES
+  {
+    Date=27.07.20;
+    Time=12:00:00;
+    Version List=DATACAPAPP1.0.0;
+  }
+  PROPERTIES
+  {
+    TableNo=5496901;
+    OnRun=BEGIN
+            Screen.RUN(Rec);
+            Variable.RUN(Rec);
+            Audio.RUN(Rec);
+
+            GetGlobals;
+            ShowScreen;
+            SetGlobals;
+          END;
+
+  }
+  CODE
+  {
+    VAR
+      StdAppSetup@5496956 : Record 5496950;
+      WRLine@5496952 : Record 5496960;
+      Screen@5496902 : Codeunit 5496901;
+      Variable@5496901 : Codeunit 5496902;
+      Audio@5496905 : Codeunit 5496903;
+      AppMgt@5496900 : Codeunit 5496950;
+      AppWhseRcptMgt@5496954 : Codeunit 5496961;
+      VerifyTxt@5496947 : TextConst 'DEU=BestÑtigen;ENU=Verify';
+      BackTxt@5496908 : TextConst 'DEU=ZurÅck;ENU=Back';
+      BackToMainMenuTxt@5496915 : TextConst 'DEU=ZurÅck zum HauptmenÅ;ENU=Back to main menu';
+      BinTxt@5496921 : TextConst 'DEU=Lagerplatz;ENU=Bin';
+      DescriptionTxt@5496919 : TextConst 'DEU=Beschreibung;ENU=Description';
+      LocationTxt@5496920 : TextConst 'DEU=Lagerort;ENU=Location';
+      InsertTxt@5496910 : TextConst 'DEU=%1 eingeben.;ENU=Insert %1.';
+      InputCorrectQstTxt@5496936 : TextConst 'DEU=Eingabe korrekt?;ENU=Input correct?';
+      WhseRcptTxt@5496903 : TextConst 'DEU=Wareneingang;ENU=Whse. Receipt';
+      ChoiceTxt@5496924 : TextConst 'DEU=Auswahl;ENU=Choice';
+      CancelAndNewTxt@5496911 : TextConst 'DEU=Beleg abbrechen und Neu;ENU=Cancel Document and New';
+      PostTxt@5496907 : TextConst 'DEU=Buchen;ENU=Post';
+      OptionsTxt@5496906 : TextConst 'DEU=Optionen;ENU=Options';
+      CloseOptionsTxt@5496917 : TextConst 'DEU=Optionen schlie·en;ENU=Close Options';
+      VerifyOptionValueTxt@5496934 : TextConst 'DEU=BestÑtigen Sie einen Optionswert;ENU=Verify an option value';
+      DocNoTxt@5496904 : TextConst 'DEU=Belegnr.;ENU=Document No.';
+      DocNoAudioTxt@5496941 : TextConst 'DEU=Belegnummer;ENU=Document Number';
+      PurchOrderVendorNameTxt@5496914 : TextConst 'DEU=Kred.-Name;ENU=Vendor Name';
+      VendShipNoTxt@5496909 : TextConst 'DEU=K.-Lief.-Nr.;ENU=Vendor Shipment No.';
+      VendShipNoAudioTxt@5496942 : TextConst 'DEU=Kreditorenlieferungsnummer;ENU=Vendor Shipment Number';
+      ItemNoTxt@5496912 : TextConst 'DEU=Art.-Nr.;ENU=Item No.';
+      EANTxt@5496913 : TextConst 'DEU=EAN;ENU=EAN';
+      EANorItemNoAudioTxt@5496943 : TextConst 'DEU=EAN oder Artikelnummer;ENU=EAN or Item Number';
+      QtyToReceiveTxt@5496916 : TextConst 'DEU=Menge akt. Lief.;ENU=Qty. to Rec.';
+      QtyToReceiveAudioTxt@5496944 : TextConst 'DEU=Menge aktuelle Lieferung;ENU=Quantity to Receive';
+      OutstandingQtyTxt@5496918 : TextConst 'DEU=Restmenge;ENU=Outstanding Quantity';
+      OptionValueTxt@5496923 : TextConst 'DEU=Optionswert;ENU=Option value';
+      YesTxt@5496922 : TextConst 'DEU=Ja;ENU=Yes';
+      StatusTxt@5496935 : TextConst 'DEU=Status;ENU=Status';
+      LinesProgressedTxt@5496940 : TextConst 'DEU=%1/%2 Zeilen;ENU=%1/%2 lines';
+      WRTxt@5496957 : TextConst 'DEU=WE;ENU=WR';
+
+    LOCAL PROCEDURE ShowScreen@50000();
+    BEGIN
+      IF WRLine."Show Options" THEN
+        ScreenOptions
+      ELSE
+        CASE WRLine."Current Site" OF
+          0:
+            ScreenDocNo;
+          1:
+            ScreenVendShipNo;
+          2:
+            ScreenEANorItemNo;
+          3:
+            ScreenQty;
+          4:
+            ScreenBin;
+          5:
+            ScreenFinishLine;
+        END;
+    END;
+
+    LOCAL PROCEDURE ScreenDocNo@5496900();
+    VAR
+      InputDocNo@5496900 : Text;
+      ErrorText@5496902 : Text;
+    BEGIN
+      InputDocNo := Variable.GetText('InputDocNo');
+
+      IF InputDocNo <> '' THEN BEGIN
+        IF AppMgt.IsOptionTerm(InputDocNo) THEN BEGIN
+          ScreenOptions;
+          EXIT;
+        END;
+
+        ErrorText := AppWhseRcptMgt.FindDocumentHeader(InputDocNo);
+
+        IF ErrorText = '' THEN BEGIN
+          AppWhseRcptMgt.FindWRLine(WRLine);
+
+          ScreenVendShipNo;
+          EXIT;
+        END;
+      END;
+
+      ScreenRecordHeader;
+      ScreenVerify('InputDocNo',DocNoTxt,STRSUBSTNO(InsertTxt,DocNoAudioTxt),ErrorText,FALSE);
+    END;
+
+    LOCAL PROCEDURE ScreenVendShipNo@5496902();
+    VAR
+      InputVendShipNo@5496900 : Text[35];
+    BEGIN
+      WRLine.SetProcessingStatus(WRLine."Processing Status"::Processing);
+
+      InputVendShipNo := Variable.GetText('InputVendShipNo');
+
+      IF InputVendShipNo <> '' THEN BEGIN
+        IF AppMgt.IsOptionTerm(InputVendShipNo) THEN BEGIN
+          ScreenOptions;
+          EXIT;
+        END;
+
+        IF AppMgt.IsBackTerm(InputVendShipNo) THEN BEGIN
+          WRLine.DeleteDocumentWRLines(FALSE);
+
+          CLEAR(WRLine);
+
+          ShowScreen;
+          EXIT;
+        END;
+
+        WRLine."Vendor Shipment No." := COPYSTR(InputVendShipNo,1,MAXSTRLEN(WRLine."Vendor Shipment No."));
+        WRLine.MODIFY;
+
+        IF NOT WRLine.SetProcessingStatus(WRLine."Processing Status"::Finished) THEN
+          WRLine.MODIFY;
+
+        AppWhseRcptMgt.FindWRLine(WRLine);
+
+        ScreenEANorItemNo;
+        EXIT;
+      END;
+
+      ScreenRecordHeader;
+      ScreenVerify('InputVendShipNo',VendShipNoTxt,STRSUBSTNO(InsertTxt,VendShipNoAudioTxt),'',FALSE);
+    END;
+
+    LOCAL PROCEDURE ScreenEANorItemNo@5496911();
+    VAR
+      InputEANorItemNo@5496900 : Text;
+      ErrorText@5496904 : Text;
+    BEGIN
+      InputEANorItemNo := Variable.GetText('InputEANorItemNo');
+
+      IF InputEANorItemNo <> '' THEN BEGIN
+        IF AppMgt.IsOptionTerm(InputEANorItemNo) THEN BEGIN
+          ScreenOptions;
+          EXIT;
+        END;
+
+        IF AppMgt.IsBackTerm(InputEANorItemNo) THEN BEGIN
+          WRLine."Processing Status" := WRLine."Processing Status"::Open;
+          WRLine.MODIFY;
+
+          WRLine.GET(WRLine."Document Type",WRLine."Document No.",0);
+          WRLine."Processing Status" := WRLine."Processing Status"::Open;
+          WRLine.MODIFY;
+
+          AppWhseRcptMgt.FindWRLine(WRLine);
+
+          ShowScreen;
+          EXIT;
+        END;
+
+        AppWhseRcptMgt.FindWRItemLine(InputEANorItemNo,WRLine,ErrorText);
+        IF ErrorText = '' THEN BEGIN
+          ScreenQty;
+          EXIT;
+        END;
+      END;
+
+      ScreenRecordHeader;
+      ScreenVerify('InputEANorItemNo',EANTxt + '/' + ItemNoTxt,STRSUBSTNO(InsertTxt,EANorItemNoAudioTxt),ErrorText,FALSE);
+    END;
+
+    LOCAL PROCEDURE ScreenQty@5496921();
+    VAR
+      InputQtyText@5496900 : Text;
+      ErrorText@5496902 : Text;
+      Qty@5496901 : Decimal;
+    BEGIN
+      WRLine.SetProcessingStatus(WRLine."Processing Status"::Processing);
+      WRLine.SetCurrentSite(3);
+
+      InputQtyText := Variable.GetText('InputQtyText');
+
+      IF InputQtyText <> '' THEN BEGIN
+        IF AppMgt.IsOptionTerm(InputQtyText) THEN BEGIN
+          ScreenOptions;
+          EXIT;
+        END;
+
+        IF AppMgt.IsBackTerm(InputQtyText) THEN BEGIN
+          WRLine.SetCurrentSite(WRLine."Current Site" - 1);
+
+          ShowScreen;
+          EXIT;
+        END;
+
+        IF NOT AppWhseRcptMgt.TryValidateQtyToReceive(WRLine,InputQtyText,Qty) THEN
+          ErrorText := COPYSTR(GETLASTERRORTEXT,1,100)
+        ELSE BEGIN
+          WRLine."Qty. to Handle" := Qty;
+
+          ScreenBin;
+          EXIT;
+        END;
+      END;
+
+      ScreenRecordHeader;
+      ScreenRecordItem;
+      ScreenRecordQuantities;
+      ScreenVerify('InputQtyText',QtyToReceiveTxt,STRSUBSTNO(InsertTxt,QtyToReceiveAudioTxt),ErrorText,FALSE);
+    END;
+
+    LOCAL PROCEDURE ScreenBin@5496980();
+    VAR
+      Location@5496904 : Record 14;
+      Bin@5496902 : Record 7354;
+      ErrorText@5496900 : Text;
+      InputBinCode@5496901 : Text;
+      BinCode@5496903 : Code[20];
+    BEGIN
+      Location.GET(WRLine."Location Code");
+      IF NOT Location."Bin Mandatory" THEN BEGIN
+        IF WRLine."Current Site" < 4 THEN
+          ScreenFinishLine
+        ELSE
+          ScreenQty;
+
+        EXIT;
+      END;
+
+      WRLine.SetCurrentSite(4);
+
+      InputBinCode := Variable.GetText('InputBinCode');
+
+      IF InputBinCode <> '' THEN BEGIN
+        IF AppMgt.IsOptionTerm(InputBinCode) THEN BEGIN
+          ScreenOptions;
+          EXIT;
+        END;
+
+        IF AppMgt.IsBackTerm(InputBinCode) THEN BEGIN
+          WRLine.SetCurrentSite(WRLine."Current Site" - 1);
+
+          ShowScreen;
+          EXIT;
+        END;
+
+        IF NOT AppWhseRcptMgt.TryValidateBinCode(WRLine,InputBinCode,BinCode) THEN
+          ErrorText := COPYSTR(GETLASTERRORTEXT,1,100)
+        ELSE BEGIN
+          WRLine."Bin Code" := BinCode;
+          ScreenFinishLine;
+          EXIT;
+        END;
+      END;
+
+      ScreenRecordHeader;
+      ScreenRecordItem;
+      ScreenRecordQuantities;
+      ScreenRecordLocation;
+      ScreenVerify('InputBinCode',BinTxt,STRSUBSTNO(InsertTxt,BinTxt),ErrorText,FALSE);
+    END;
+
+    LOCAL PROCEDURE ScreenFinishLine@5496919();
+    VAR
+      ErrorText@5496900 : Text;
+      InputFinishLineChoice@5496901 : Text;
+      OptionValue@5496902 : Integer;
+    BEGIN
+      WRLine.SetCurrentSite(5);
+
+      InputFinishLineChoice := Variable.GetText('InputFinishLineChoice');
+
+      IF InputFinishLineChoice <> '' THEN BEGIN
+        IF AppMgt.IsOptionTerm(InputFinishLineChoice) THEN BEGIN
+          ScreenOptions;
+          EXIT;
+        END;
+
+        IF AppMgt.IsBackTerm(InputFinishLineChoice) THEN BEGIN
+          WRLine.SetCurrentSite(WRLine."Current Site" - 1);
+
+          ShowScreen;
+          EXIT;
+        END;
+
+        IF NOT EVALUATE(OptionValue,InputFinishLineChoice) THEN
+          ErrorText := VerifyOptionValueTxt
+        ELSE
+          IF OptionValue = 1 THEN BEGIN
+            Variable.SetText('InputFinishLineChoice','');
+            FinishLine;
+            EXIT;
+          END ELSE
+            ErrorText := VerifyOptionValueTxt;
+      END;
+
+      ScreenRecordHeader;
+      ScreenRecordItem;
+      ScreenRecordQuantities;
+      ScreenRecordLocation;
+      ScreenVerify('InputFinishLineChoice',InputCorrectQstTxt,InputCorrectQstTxt,ErrorText,FALSE);
+      Screen.Label('','1 - ' + YesTxt);
+    END;
+
+    LOCAL PROCEDURE ScreenOptions@5496906();
+    VAR
+      InputOptionsChoice@5496900 : Text;
+      ErrorText@5496901 : Text;
+    BEGIN
+      WRLine.SetShowOptions(TRUE);
+
+      InputOptionsChoice := Variable.GetText('InputOptionsChoice');
+
+      IF InputOptionsChoice <> '' THEN BEGIN
+        CASE InputOptionsChoice OF
+          '3': // Eine Seite ZurÅck
+            BEGIN
+              IF WRLine."Document Line No." = 0 THEN BEGIN
+                WRLine.DeleteDocumentWRLines(FALSE);
+
+                CLEAR(WRLine);
+              END ELSE
+                IF WRLine."Current Site" = 2 THEN BEGIN
+                  WRLine."Processing Status" := WRLine."Processing Status"::Open;
+                  WRLine.SetShowOptions(FALSE);
+                  WRLine.MODIFY;
+
+                  WRLine.GET(WRLine."Document Type",WRLine."Document No.",0);
+                  WRLine."Processing Status" := WRLine."Processing Status"::Open;
+                  WRLine.MODIFY;
+
+                  AppWhseRcptMgt.FindWRLine(WRLine);
+                END ELSE BEGIN
+                  WRLine.SetCurrentSite(WRLine."Current Site" - 1);
+
+                  WRLine.SetShowOptions(FALSE);
+                END;
+
+              ShowScreen;
+              EXIT;
+            END;
+          '5': // Alle Zeilen zum Beleg lîschen
+            BEGIN
+              WRLine.DeleteDocumentWRLines(FALSE);
+
+              CLEAR(WRLine);
+
+              ShowScreen;
+              EXIT;
+            END;
+          '7': // ZurÅck zum HauptmenÅ
+            BEGIN
+              WRLine.SetShowOptions(FALSE);
+              WRLine.MODIFY;
+              ScreenEnd;
+              EXIT;
+            END;
+          '9': // Optionsseite schlie·en
+            BEGIN
+              WRLine.SetShowOptions(FALSE);
+              ShowScreen;
+              EXIT;
+            END;
+          ELSE
+            ErrorText := VerifyOptionValueTxt;
+        END;
+      END;
+
+      Screen.Header(OptionsTxt);
+      IF WRLine."Document No." <> '' THEN
+        Screen.Label('3 - ' + BackTxt,'');
+      Screen.Label('5 - ' + CancelAndNewTxt,'');
+      Screen.Label('7 - ' + BackToMainMenuTxt,'');
+      Screen.Label('9 - ' + CloseOptionsTxt,'');
+      ScreenVerify('InputOptionsChoice',ChoiceTxt,STRSUBSTNO(InsertTxt,OptionValueTxt),ErrorText,TRUE);
+    END;
+
+    LOCAL PROCEDURE ScreenRecordHeader@5496915();
+    VAR
+      NoOfLines@5496900 : Integer;
+      NoOfProcessedLines@5496901 : Integer;
+      VendName@5496902 : Text[50];
+      VendShipNo@5496903 : Code[35];
+    BEGIN
+      IF WRLine."Document No." = '' THEN
+        Screen.Header(WhseRcptTxt)
+      ELSE
+        Screen.Header(WRTxt + ' ' + AppWhseRcptMgt.GetTranslatedDocType(WRLine."Document Type") + ' ' + WRLine."Document No.");
+
+      IF (WRLine."Current Site" > 0) THEN BEGIN
+        GetVendorDetails(VendName,VendShipNo);
+
+        IF StdAppSetup."WR Show Vendor Name" AND (VendName <> '') THEN
+          Screen.Label(PurchOrderVendorNameTxt,VendName);
+
+        IF WRLine."Current Site" > 1 THEN BEGIN
+          IF StdAppSetup."WR Show Vendor Shipment No." AND (VendShipNo <> '') THEN
+            Screen.Label(VendShipNoTxt,VendShipNo);
+
+          IF StdAppSetup."WR Show Line Status" THEN BEGIN
+            GetNoOfLines(NoOfLines,NoOfProcessedLines);
+            Screen.Label(StatusTxt,STRSUBSTNO(LinesProgressedTxt,NoOfProcessedLines,NoOfLines));
+          END;
+        END;
+      END;
+    END;
+
+    LOCAL PROCEDURE ScreenRecordItem@5496905();
+    BEGIN
+      Screen.Label(ItemNoTxt,WRLine."No.");
+      IF StdAppSetup."WR Show EAN" THEN
+        IF WRLine."Cross-Reference No." <> '' THEN
+          Screen.Label(EANTxt,WRLine."Cross-Reference No.");
+      IF StdAppSetup."WR Show Item Description" THEN
+        Screen.Label(DescriptionTxt,WRLine.Description);
+    END;
+
+    LOCAL PROCEDURE ScreenRecordQuantities@5496917();
+    VAR
+      ItemUoM@5496900 : Record 5404;
+    BEGIN
+      Screen.Label(OutstandingQtyTxt,FORMAT(WRLine."Outstanding Quantity") + ' ' + WRLine."Unit of Measure Code");
+      IF WRLine."Current Site" > 3 THEN
+        Screen.Label(QtyToReceiveTxt,FORMAT(WRLine."Qty. to Handle") + ' ' + WRLine."Unit of Measure Code");
+
+      IF (WRLine."Cross-R. Unit of Measure Code" <> '') AND (WRLine."Cross-R. Unit of Measure Code" <> WRLine."Unit of Measure Code") THEN BEGIN
+        ItemUoM.GET(WRLine."No.",WRLine."Cross-R. Unit of Measure Code");
+        Screen.Label('',STRSUBSTNO('1 %1 = %2 %3',WRLine."Cross-R. Unit of Measure Code",ItemUoM."Qty. per Unit of Measure",WRLine."Base Unit of Measure Code"));
+      END;
+    END;
+
+    LOCAL PROCEDURE ScreenRecordLocation@5496918();
+    BEGIN
+      IF WRLine."Location Code" <> '' THEN
+        Screen.Label(LocationTxt,WRLine."Location Code");
+      IF WRLine."Current Site" > 4 THEN
+        IF WRLine."Bin Code" <> '' THEN
+          Screen.Label(BinTxt,WRLine."Bin Code");
+    END;
+
+    LOCAL PROCEDURE ScreenVerify@50014(Name@50002 : Text[100];Caption@50001 : Text[100];AudioText@5496900 : Text[100];ErrorText@50000 : Text[100];ShowHeader@5496901 : Boolean);
+    BEGIN
+      IF ShowHeader THEN
+        Screen.Header(VerifyTxt);
+
+      IF ErrorText <> '' THEN
+        Screen.Error(ErrorText);
+
+      IF AudioText <> '' THEN
+        Audio.Speech(AudioText);
+      Screen.Input(Name,Caption,'');
+    END;
+
+    LOCAL PROCEDURE ScreenEnd@50015();
+    BEGIN
+      Variable.DeleteAll;
+      Screen.ButtonShowApps(BackTxt);
+    END;
+
+    LOCAL PROCEDURE FinishLine@5496924();
+    BEGIN
+      IF NOT WRLine.SetProcessingStatus(WRLine."Processing Status"::Finished) THEN
+        WRLine.MODIFY;
+
+      CLEAR(WRLine);
+
+      AppWhseRcptMgt.FindWRLine(WRLine);
+      IF WRLine."Document No." <> '' THEN
+        ScreenEANorItemNo
+      ELSE
+        ScreenDocNo;
+    END;
+
+    LOCAL PROCEDURE GetNoOfLines@5496908(VAR NoOfLines@5496900 : Integer;VAR NoOfProcessedLines@5496901 : Integer);
+    VAR
+      WRLine2@5496902 : Record 5496960;
+    BEGIN
+      WITH WRLine2 DO BEGIN
+        SETRANGE("Document Type",WRLine."Document Type");
+        SETRANGE("Document No.",WRLine."Document No.");
+        SETFILTER("Document Line No.",'<>0');
+        NoOfLines := COUNT;
+        SETRANGE("Processing Status","Processing Status"::Finished);
+        NoOfProcessedLines := COUNT;
+      END;
+    END;
+
+    LOCAL PROCEDURE GetVendorDetails@5496904(VAR VendorName@5496901 : Text[50];VAR VendorShipmentNo@5496902 : Code[35]);
+    VAR
+      WRLine2@5496900 : Record 5496960;
+    BEGIN
+      IF WRLine."Document No." = '' THEN
+        EXIT;
+
+      IF WRLine."Document Line No." = 0 THEN BEGIN
+        VendorName := WRLine."Vendor Name";
+        VendorShipmentNo := WRLine."Vendor Shipment No.";
+      END ELSE BEGIN
+        WRLine2.GET(WRLine."Document Type",WRLine."Document No.",0);
+
+        VendorName := WRLine2."Vendor Name";
+        VendorShipmentNo := WRLine2."Vendor Shipment No.";
+      END;
+    END;
+
+    LOCAL PROCEDURE GetGlobals@5496901();
+    BEGIN
+      StdAppSetup.GET;
+      AppWhseRcptMgt.FindWRLine(WRLine);
+    END;
+
+    LOCAL PROCEDURE SetGlobals@5496903();
+    BEGIN
+      IF WRLine."Document No." <> '' THEN
+        WRLine.MODIFY;
+    END;
+
+    LOCAL PROCEDURE ClearGlobals@5496907();
+    BEGIN
+      CLEAR(WRLine);
+    END;
+
+    BEGIN
+    {
+      -------------------------------------------------------------------------------------------------
+       ∏ Copyright by ©AGOLUTION GmbH, Germany
+      -------------------------------------------------------------------------------------------------
+    }
+    END.
+  }
+}
+

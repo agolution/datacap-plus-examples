@@ -1,0 +1,27 @@
+OBJECT MenuSuite 1052 Dept - AGO DC Std.-App
+{
+  OBJECT-PROPERTIES
+  {
+    Date=27.07.20;
+    Time=12:00:00;
+    Version List=DATACAPAPP1.0.0;
+  }
+  PROPERTIES
+  {
+  }
+  MENUNODES
+  {
+    {                ;[{FD0F0F83-C795-44D5-BEB7-7BBD09ABDBE8}] ;NextNodeID=[{D94707F8-CD14-410F-B224-F23369966BF0}] }
+    { MenuItem       ;[{D94707F8-CD14-410F-B224-F23369966BF0}] ;Name=DATACAP+ Standardanwendungseinrichtung;
+                                                                CaptionML=[DEU=DATACAP+ Standardanwendungseinrichtung;
+                                                                           ENU=DATACAP+ Std.-App Setup];
+                                                                ApplicationArea=#Basic,#Suite;
+                                                                MemberOfMenu=[{19A352FE-D90D-424E-B85F-CF3B8E98CF0E}];
+                                                                RunObjectType=Page;
+                                                                RunObjectID=5496950;
+                                                                ParentNodeID=[{8693210F-49FA-4004-ADE3-A6D0EF369AAF}];
+                                                                Visible=Yes;
+                                                                NextNodeID=[{00000000-0000-0000-0000-000000000000}];
+                                                                DepartmentCategory=Administration }
+  }
+}

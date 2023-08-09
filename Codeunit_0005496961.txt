@@ -1,0 +1,368 @@
+OBJECT Codeunit 5496961 AGO DC App Whse. Rcpt. Mgt.
+{
+  OBJECT-PROPERTIES
+  {
+    Date=27.07.20;
+    Time=12:00:00;
+    Version List=DATACAPAPP1.0.0;
+  }
+  PROPERTIES
+  {
+    OnRun=BEGIN
+          END;
+
+  }
+  CODE
+  {
+    VAR
+      DocNoNotFoundTxt@5496905 : TextConst 'DEU=Belegnr. ''%1'' nicht gefunden.;ENU=Document No. ''%1'' not found.';
+      AlreadyInProcessingTxt@5496900 : TextConst 'DEU=''%1'' hat %2 ''%3'' bereits in Bearbeitung.;ENU=''%1'' is already processing %2 ''%3''.';
+      ItemNoOrEANDoesNotExistTxt@5496902 : TextConst 'DEU=Artikelnr. / EAN ''%1'' existiert nicht.;ENU=Item No. / EAN ''%1'' does not exist.';
+      ItemNoAlreadyProcessedTxt@5496903 : TextConst 'DEU=Artikelnr. ''%1'' wurde bereits bearbeitet.;ENU=Item No. ''%1'' already processed.';
+      ItemNoNotInDocTxt@5496904 : TextConst 'DEU=Artikelnr. ''%1'' ist nicht in Beleg %2 %3 vorhanden.;ENU=Item No. ''%1'' does not exist in Document %2 %3.';
+
+    PROCEDURE FindWRLine@5496902(VAR WRLine@5496908 : Record 5496960);
+    VAR
+      WRLine2@5496900 : Record 5496960;
+      Counter@5496901 : Integer;
+    BEGIN
+      WRLine2.SETRANGE("User ID",USERID);
+
+      FOR Counter := 1 TO 2 DO BEGIN
+        IF Counter = 1 THEN
+          WRLine2.SETRANGE("Processing Status",WRLine2."Processing Status"::Processing)
+        ELSE
+          WRLine2.SETRANGE("Processing Status",WRLine2."Processing Status"::Open);
+
+        IF WRLine2.FINDFIRST THEN BEGIN
+          WRLine := WRLine2;
+          EXIT;
+        END;
+      END;
+    END;
+
+    PROCEDURE FindWRItemLine@5496901(InputEANorItemNo@5496900 : Text;VAR WRLine@5496908 : Record 5496960;VAR ErrorText@5496903 : Text[100]);
+    VAR
+      ItemCrossRef@5496902 : Record 5717;
+      Item@5496901 : Record 27;
+      ItemNo@5496904 : Code[20];
+      CrossRefFound@5496905 : Boolean;
+      ItemInDocFound@5496909 : Boolean;
+    BEGIN
+      InputEANorItemNo := COPYSTR(InputEANorItemNo,1,MAXSTRLEN(Item."No."));
+      IF Item.GET(InputEANorItemNo) THEN
+        ItemNo := Item."No."
+      ELSE BEGIN
+        ItemCrossRef.RESET;
+        ItemCrossRef.SETRANGE("Cross-Reference Type",ItemCrossRef."Cross-Reference Type"::"Bar Code");
+        ItemCrossRef.SETRANGE("Discontinue Bar Code",FALSE);
+        ItemCrossRef.SETRANGE("Cross-Reference No.",InputEANorItemNo);
+        IF NOT ItemCrossRef.FINDFIRST THEN
+          ErrorText := STRSUBSTNO(ItemNoOrEANDoesNotExistTxt,InputEANorItemNo)
+        ELSE BEGIN
+          CrossRefFound := TRUE;
+          ItemNo := ItemCrossRef."Item No.";
+        END;
+      END;
+
+      IF ErrorText <> '' THEN
+        EXIT;
+
+      WITH WRLine DO BEGIN
+        RESET;
+        SETRANGE("Document Type","Document Type");
+        SETRANGE("Document No.","Document No.");
+        SETRANGE("User ID",USERID);
+        SETRANGE("No.",ItemNo);
+        ItemInDocFound := NOT ISEMPTY;
+        SETFILTER("Processing Status",'<>%1',"Processing Status"::Finished);
+        SETFILTER("Outstanding Quantity",'>%1',0);
+        IF CrossRefFound THEN BEGIN
+          SETRANGE("Unit of Measure Code",ItemCrossRef."Unit of Measure");
+          IF ISEMPTY THEN
+            SETRANGE("Unit of Measure Code");
+        END;
+        IF NOT FINDFIRST THEN BEGIN
+          IF ItemInDocFound THEN
+            ErrorText := STRSUBSTNO(ItemNoAlreadyProcessedTxt,ItemNo)
+          ELSE
+            ErrorText := STRSUBSTNO(ItemNoNotInDocTxt,ItemNo,GetTranslatedDocType(WRLine."Document Type"),WRLine."Document No.");
+        END ELSE
+          IF CrossRefFound THEN BEGIN
+            "Cross-Reference No." := ItemCrossRef."Cross-Reference No.";
+            "Cross-R. Unit of Measure Code" := ItemCrossRef."Unit of Measure";
+          END;
+      END;
+    END;
+
+    PROCEDURE FindDocumentHeader@5496914(InputDocNo@5496901 : Text) : Text;
+    VAR
+      PurchHeader@5496900 : Record 38;
+      WhseActHeader@5496902 : Record 5766;
+      WhseRcptHeader@5496903 : Record 7316;
+      DocType@5496905 : 'Purch. Order,Invt. Put-away,Whse. Receipt';
+      DocNo@5496904 : Code[20];
+      ProcessingUserID@5496906 : Code[50];
+    BEGIN
+      InputDocNo := COPYSTR(InputDocNo,1,20);
+
+      IF PurchHeader.GET(PurchHeader."Document Type"::Order,InputDocNo) THEN BEGIN
+        DocNo := PurchHeader."No.";
+        DocType := DocType::"Purch. Order";
+      END;
+
+      IF WhseActHeader.GET(WhseActHeader.Type::"Invt. Put-away",InputDocNo) THEN BEGIN
+        DocNo := WhseActHeader."No.";
+        DocType := DocType::"Invt. Put-away";
+      END;
+
+      IF WhseRcptHeader.GET(InputDocNo) THEN BEGIN
+        DocNo := WhseRcptHeader."No.";
+        DocType := DocType::"Whse. Receipt";
+      END;
+
+      IF DocNo = '' THEN
+        EXIT(STRSUBSTNO(DocNoNotFoundTxt,InputDocNo));
+
+      IF OtherUserProcessesDocument(DocType,DocNo,ProcessingUserID) THEN
+        EXIT(STRSUBSTNO(AlreadyInProcessingTxt,ProcessingUserID,GetTranslatedDocType(DocType),DocNo));
+
+      InsertLines(DocType,DocNo);
+    END;
+
+    LOCAL PROCEDURE OtherUserProcessesDocument@5496908(DocType@5496900 : 'Purch. Order,Invt. Put-away,Whse. Receipt';DocNo@5496901 : Code[20];VAR ProcessingUserID@5496902 : Code[50]) : Boolean;
+    VAR
+      WRLine@5496903 : Record 5496960;
+    BEGIN
+      WITH WRLine DO BEGIN
+        SETRANGE("Document Type",DocType);
+        SETRANGE("Document No.",DocNo);
+        SETFILTER("User ID",'<>%1',USERID);
+        IF FINDFIRST THEN BEGIN
+          ProcessingUserID := "User ID";
+          EXIT(TRUE);
+        END;
+      END;
+    END;
+
+    PROCEDURE GetTranslatedDocType@5496909(DocType@5496900 : 'Purch. Order,Invt. Put-away,Whse. Receipt') : Text;
+    VAR
+      WRLine@5496901 : Record 5496960;
+    BEGIN
+      CASE DocType OF
+        DocType::"Purch. Order":
+          EXIT(FORMAT(WRLine."Document Type"::"Purch. Order"));
+        DocType::"Invt. Put-away":
+          EXIT(FORMAT(WRLine."Document Type"::"Invt. Put-away"));
+        DocType::"Whse. Receipt":
+          EXIT(FORMAT(WRLine."Document Type"::"Whse. Receipt"));
+      END;
+    END;
+
+    LOCAL PROCEDURE InsertLines@5496900(DocType@5496901 : 'Purch. Order,Invt. Put-away,Whse. Receipt';DocNo@5496900 : Code[20]);
+    BEGIN
+      CASE DocType OF
+        DocType::"Purch. Order":
+          InsertLinesPurchOrder(DocNo);
+        DocType::"Invt. Put-away":
+          InsertLinesInvtPutAway(DocNo);
+        DocType::"Whse. Receipt":
+          InsertLinesWhseRcpt(DocNo);
+      END;
+    END;
+
+    LOCAL PROCEDURE InsertLinesPurchOrder@5496907(DocNo@5496900 : Code[20]);
+    VAR
+      WRLine@5496901 : Record 5496960;
+      PurchHeader@5496902 : Record 38;
+      PurchLine@5496903 : Record 39;
+    BEGIN
+      PurchHeader.GET(PurchHeader."Document Type"::Order,DocNo);
+      InitializeLine(WRLine."Document Type"::"Purch. Order",DocNo,WRLine);
+      WRLine."Current Site" := 1;
+      WRLine."Vendor Name" := PurchHeader."Buy-from Vendor Name";
+      WRLine.INSERT;
+
+      WITH PurchLine DO BEGIN
+        SETRANGE("Document Type","Document Type"::Order);
+        SETRANGE("Document No.",DocNo);
+        SETRANGE(Type,Type::Item);
+        SETFILTER("Outstanding Quantity",'>%1',0);
+        IF FINDSET THEN
+          REPEAT
+            InitializeLine(WRLine."Document Type"::"Purch. Order",DocNo,WRLine);
+            WRLine."Document Line No." := "Line No.";
+            WRLine."Current Site" := 2;
+            WRLine."No." := "No.";
+            GetItemInfos("No.",WRLine);
+            WRLine."Location Code" := "Location Code";
+            WRLine."Unit of Measure Code" := "Unit of Measure";
+            WRLine."Quantity (Base)" := "Quantity (Base)";
+            WRLine."Outstanding Qty. (Base)" := "Outstanding Qty. (Base)";
+            WRLine."Outstanding Quantity" := "Outstanding Quantity";
+            WRLine.INSERT;
+          UNTIL NEXT = 0;
+      END;
+    END;
+
+    LOCAL PROCEDURE InsertLinesInvtPutAway@5496913(DocNo@5496900 : Code[20]);
+    VAR
+      WRLine@5496901 : Record 5496960;
+      WhseActHeader@5496903 : Record 5766;
+      WhseActLine@5496902 : Record 5767;
+      WMSMgt@5496904 : Codeunit 7302;
+    BEGIN
+      WhseActHeader.GET(WhseActHeader.Type::"Invt. Put-away",DocNo);
+      InitializeLine(WRLine."Document Type"::"Invt. Put-away",DocNo,WRLine);
+      WRLine."Current Site" := 1;
+      WRLine."Vendor Name" := WMSMgt.GetDestinationName(WhseActHeader."Destination Type",WhseActHeader."Destination No.");
+      WRLine.INSERT;
+
+      WITH WhseActLine DO BEGIN
+        SETRANGE("Activity Type","Activity Type"::"Invt. Put-away");
+        SETRANGE("No.",DocNo);
+        SETFILTER("Qty. Outstanding",'>%1',0);
+        IF FINDSET THEN
+          REPEAT
+            InitializeLine(WRLine."Document Type"::"Invt. Put-away",DocNo,WRLine);
+            WRLine."Document Line No." := "Line No.";
+            WRLine."Current Site" := 2;
+            WRLine."No." := "Item No.";
+            GetItemInfos("Item No.",WRLine);
+            WRLine."Location Code" := "Location Code";
+            WRLine."Unit of Measure Code" := "Unit of Measure Code";
+            WRLine."Quantity (Base)" := "Qty. (Base)";
+            WRLine."Outstanding Qty. (Base)" := "Qty. Outstanding (Base)";
+            WRLine."Outstanding Quantity" := "Qty. Outstanding";
+            WRLine.INSERT;
+          UNTIL NEXT = 0;
+      END;
+    END;
+
+    LOCAL PROCEDURE InsertLinesWhseRcpt@5496915(DocNo@5496900 : Code[20]);
+    VAR
+      WRLine@5496901 : Record 5496960;
+      WhseRcptHeader@5496903 : Record 7316;
+      WhseRcptLine@5496902 : Record 7317;
+    BEGIN
+      WhseRcptHeader.GET(DocNo);
+      InitializeLine(WRLine."Document Type"::"Whse. Receipt",DocNo,WRLine);
+      WRLine."Current Site" := 1;
+      WRLine.INSERT;
+
+      WITH WhseRcptLine DO BEGIN
+        SETRANGE("No.",DocNo);
+        SETFILTER("Qty. Outstanding",'>%1',0);
+        IF FINDSET THEN
+          REPEAT
+            InitializeLine(WRLine."Document Type"::"Whse. Receipt",DocNo,WRLine);
+            WRLine."Document Line No." := "Line No.";
+            WRLine."Current Site" := 2;
+            WRLine."No." := "Item No.";
+            GetItemInfos("Item No.",WRLine);
+            WRLine."Location Code" := "Location Code";
+            WRLine."Unit of Measure Code" := "Unit of Measure Code";
+            WRLine."Quantity (Base)" := "Qty. (Base)";
+            WRLine."Outstanding Qty. (Base)" := "Qty. Outstanding (Base)";
+            WRLine."Outstanding Quantity" := "Qty. Outstanding";
+            WRLine.INSERT;
+          UNTIL NEXT = 0;
+      END;
+    END;
+
+    LOCAL PROCEDURE InitializeLine@5496922(DocType@5496901 : 'Purch. Order,Invt. Put-away,Whse. Receipt';DocNo@5496902 : Code[20];VAR WRLine@5496900 : Record 5496960);
+    BEGIN
+      WITH WRLine DO BEGIN
+        INIT;
+        "Document Type" := DocType;
+        "Document No." := DocNo;
+        "User ID" := USERID;
+      END;
+    END;
+
+    LOCAL PROCEDURE GetItemInfos@5496942(ItemNo@5496900 : Code[20];VAR WRLine@5496901 : Record 5496960);
+    VAR
+      Item@5496902 : Record 27;
+    BEGIN
+      Item.GET(ItemNo);
+      WRLine.Description := Item.Description;
+      WRLine."Base Unit of Measure Code" := Item."Base Unit of Measure";
+    END;
+
+    [TryFunction]
+    PROCEDURE TryValidateQtyToReceive@5496920(WRLine@5496901 : Record 5496960;QtyText@5496902 : Text;VAR Qty@5496903 : Decimal);
+    VAR
+      PurchLine@5496905 : Record 39;
+      WhseActLine@5496900 : Record 5767;
+      WhseRcptLine@5496906 : Record 7317;
+      Location@5496904 : Record 14;
+    BEGIN
+      // To-Do: Es werden nicht alle PrÅfungen durchgefÅhrt, da CurrFieldNo = 0 !
+      CLEARLASTERROR;
+      EVALUATE(Qty,QtyText);
+      CASE WRLine."Document Type" OF
+        WRLine."Document Type"::"Purch. Order":
+          BEGIN
+            PurchLine.GET(PurchLine."Document Type"::Order,WRLine."Document No.",WRLine."Document Line No.");
+            PurchLine.VALIDATE("Qty. to Receive",Qty);
+            Location.GET(PurchLine."Location Code");
+            Location.TESTFIELD("Directed Put-away and Pick",FALSE)
+          END;
+        WRLine."Document Type"::"Invt. Put-away":
+          BEGIN
+            WhseActLine.GET(WhseActLine."Activity Type"::"Invt. Put-away",WRLine."Document No.",WRLine."Document Line No.");
+            WhseActLine.VALIDATE("Qty. to Handle",Qty);
+          END;
+        WRLine."Document Type"::"Whse. Receipt":
+          BEGIN
+            WhseRcptLine.GET(WRLine."Document No.",WRLine."Document Line No.");
+            WhseRcptLine.VALIDATE("Qty. to Receive",Qty);
+          END;
+      END;
+    END;
+
+    [TryFunction]
+    PROCEDURE TryValidateBinCode@5496927(WRLine@5496901 : Record 5496960;BinCodeText@5496905 : Text;VAR BinCode@5496906 : Code[20]);
+    VAR
+      PurchLine@5496900 : Record 39;
+      WhseActLine@5496903 : Record 5767;
+      WhseRcptLine@5496902 : Record 7317;
+      Location@5496904 : Record 14;
+    BEGIN
+      // To-Do: Es werden nicht alle PrÅfungen durchgefÅhrt, da CurrFieldNo = 0 !
+      CLEARLASTERROR;
+      EVALUATE(BinCode,BinCodeText);
+      CASE WRLine."Document Type" OF
+        WRLine."Document Type"::"Purch. Order":
+          BEGIN
+            PurchLine.GET(PurchLine."Document Type"::Order,WRLine."Document No.",WRLine."Document Line No.");
+            PurchLine.VALIDATE("Qty. to Receive",WRLine."Qty. to Handle");
+            PurchLine.VALIDATE("Bin Code",BinCode);
+            Location.GET(PurchLine."Location Code");
+            Location.TESTFIELD("Directed Put-away and Pick",FALSE)
+          END;
+        WRLine."Document Type"::"Invt. Put-away":
+          BEGIN
+            WhseActLine.GET(WhseActLine."Activity Type"::"Invt. Put-away",WRLine."Document No.",WRLine."Document Line No.");
+            WhseActLine.VALIDATE("Qty. to Handle",WRLine."Qty. to Handle");
+            WhseActLine.VALIDATE("Bin Code",BinCode);
+          END;
+        WRLine."Document Type"::"Whse. Receipt":
+          BEGIN
+            WhseRcptLine.GET(WRLine."Document No.",WRLine."Document Line No.");
+            WhseRcptLine.VALIDATE("Qty. to Receive",WRLine."Qty. to Handle");
+            WhseRcptLine.VALIDATE("Bin Code",BinCode);
+          END;
+      END;
+    END;
+
+    BEGIN
+    {
+      -------------------------------------------------------------------------------------------------
+       ∏ Copyright by ©AGOLUTION GmbH, Germany
+      -------------------------------------------------------------------------------------------------
+    }
+    END.
+  }
+}
+
