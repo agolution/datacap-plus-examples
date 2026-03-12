@@ -16,6 +16,7 @@ Behold the allure of your customized interface! Feast your eyes on the screensho
 
 ![Example Screenshot MDE](assets/ScreenshotMDE.png)
 ![Example Screenshot Business Central](assets/ScreenshotBC.png)
+![CSS Example 2 Screenshot](assets/ScreenshotColumnWidth.png)
 
 Get ready to dive into a realm where your DATACAP+ interface becomes an expression of your unique style and needs. Let's unleash the artistry of CSS upon your data capture journey!
 
