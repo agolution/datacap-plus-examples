@@ -24,6 +24,36 @@ button {
 	text-align: right;
 }
 
+.label.name.Class25Width {
+	background-color: red;
+	width: 25%;
+}
+
+.label.value.Class25Width {
+	background-color: green;
+	width: 75%;
+}
+
+.label.name.Class50Width {
+	background-color: green;
+	width: 50%;
+}
+
+.label.value.Class50Width {
+	background-color: green;
+	width: 50%;
+}
+
+.label.name.Class75Width {
+	background-color: green;
+	width: 75%;
+}
+
+.label.value.Class75Width {
+	background-color: red;
+	width: 25%;
+}
+
 .Red {
 	background-color: red;
 }
