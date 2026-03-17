@@ -1,6 +1,5 @@
-codeunit 50101 "AGO CSS App 2 (Column Width)"
+codeunit 50101 "CSS App 2 (Column Width)"
 {
-    Permissions = tabledata "AGO DC Setup" = r;
     TableNo = "AGO DC Session";
 
     trigger OnRun()
@@ -19,8 +18,7 @@ codeunit 50101 "AGO CSS App 2 (Column Width)"
         Variable: Codeunit "AGO DC Variable Hlp.";
         Audio: Codeunit "AGO DC Audio Hlp.";
         CurrSite: Option Site1,Site2,Site3;
-        CurrAction: Text[20];
-        CurrShowOptions: Boolean;
+        CurrAction: Text[2048];
         ColumnWidthExampleLbl: Label 'Column Width Example', Comment = 'DEU="Spaltenbreitenbeispiel"';
         NextSiteLbl: Label 'Next Site', Comment = 'DEU="Nächste Seite"';
         PrevSiteLbl: Label 'Previous Site', Comment = 'DEU="Vorherige Seite"';
@@ -48,7 +46,7 @@ codeunit 50101 "AGO CSS App 2 (Column Width)"
 
         InputValue := Variable.GetText('CurrAction');
 
-        if InputValue <> '' then begin
+        if InputValue <> '' then
             case InputValue of
                 NextSiteLbl:
                     begin
@@ -63,7 +61,6 @@ codeunit 50101 "AGO CSS App 2 (Column Width)"
                         exit;
                     end;
             end;
-        end;
 
         ShowHeader();
         Screen.LabelClass(SiteLbl, StrSubstNo(SiteNoLbl, 1), 'Class25Width');  // defined in Custom.css
@@ -79,7 +76,7 @@ codeunit 50101 "AGO CSS App 2 (Column Width)"
 
         InputValue := Variable.GetText('CurrAction');
 
-        if InputValue <> '' then begin
+        if InputValue <> '' then
             case InputValue of
                 PrevSiteLbl:
                     begin
@@ -99,7 +96,6 @@ codeunit 50101 "AGO CSS App 2 (Column Width)"
                         exit;
                     end;
             end;
-        end;
 
         ShowHeader();
         Screen.LabelClass(SiteLbl, StrSubstNo(SiteNoLbl, 2), 'Class50Width'); // defined in Custom.css
@@ -116,7 +112,7 @@ codeunit 50101 "AGO CSS App 2 (Column Width)"
 
         InputValue := Variable.GetText('CurrAction');
 
-        if InputValue <> '' then begin
+        if InputValue <> '' then
             case InputValue of
                 PrevSiteLbl:
                     begin
@@ -130,7 +126,6 @@ codeunit 50101 "AGO CSS App 2 (Column Width)"
                         exit;
                     end;
             end;
-        end;
 
         ShowHeader();
         Screen.LabelClass(SiteLbl, StrSubstNo(SiteNoLbl, 3), 'Class75Width'); // defined in Custom.css
@@ -145,9 +140,15 @@ codeunit 50101 "AGO CSS App 2 (Column Width)"
 
     local procedure ScreenEnd()
     begin
-        SetCurrentSite(CurrSite::Site1);
+        ClearGlobals();
         Variable.DeleteAll();
         Screen.ButtonShowApps(ExitApplicationLbl);
+    end;
+
+    local procedure ClearGlobals()
+    begin
+        Clear(CurrAction);
+        Clear(CurrSite)
     end;
 
     local procedure GetGlobals()

@@ -12,7 +12,7 @@ In this package, you'll find the following key components:
 
 ## Visual Preview
 
-Behold the allure of your customized interface! Feast your eyes on the screenshot below:
+Behold the allure of your customized interface! Feast your eyes on the screenshots below:
 
 ![Example Screenshot MDE](assets/ScreenshotMDE.png)
 ![Example Screenshot Business Central](assets/ScreenshotBC.png)
