@@ -148,7 +148,7 @@ codeunit 50101 "CSS App 2 (Column Width)"
     local procedure ClearGlobals()
     begin
         Clear(CurrAction);
-        Clear(CurrSite)
+        Clear(CurrSite);
     end;
 
     local procedure GetGlobals()
