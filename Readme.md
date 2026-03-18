@@ -13,6 +13,8 @@ Dive into the world of customizing **DATACAP+** user interfaces using CSS. This 
 
 ![CSS Example Screenshot](individualize-your-datacap-interface-with-css/assets/ScreenshotMDE.png)
 
+![CSS Example 2 Screenshot](individualize-your-datacap-interface-with-css/assets/ScreenshotColumnWidth.png)
+
 [Explore the Example](/individualize-your-datacap-interface-with-css)
 
 ## Warehouse Receipt Example in C/AL with DATACAP+
